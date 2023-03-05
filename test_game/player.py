@@ -6,6 +6,7 @@ import pygame as pg
 class Player(Entity):
     def __init__(self, game, x: int | float = 50, y: int | float = 50) -> None:
         super().__init__(game, x, y)
+        self.GAME = game
 
         self.keys_pressed = {
             "left": False,
@@ -97,6 +98,10 @@ class Player(Entity):
         self.position.add(velocity)
 
     def draw(self) -> None:
-        self.ENGINE.DISPLAY.blit(
-            self.sprite, self.position.subsract(self.ENGINE.CAMERA.scroll)
+        self.GAME.WINDOW.blit(
+            self.sprite,
+            (
+                self.position.x - self.GAME.CAMERA.scroll.x,
+                self.position.y - self.GAME.CAMERA.scroll.y,
+            ),
         )

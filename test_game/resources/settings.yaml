@@ -1,0 +1,7 @@
+video:
+    framerate: 60
+    vsync: true
+    size:
+        width: 1280
+        height: 720
+    camera_scroll_smoothness: 12

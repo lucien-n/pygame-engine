@@ -1,1 +1,5 @@
-__all__ = ["camera", "colors", "engine", "resource_loader", "vector2"]
+import sys
+
+sys.dont_write_bytecode = True
+
+__all__ = ["camera", "colors", "engine", "loader", "vector2", "entity"]

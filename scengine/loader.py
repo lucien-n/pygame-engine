@@ -1,12 +1,13 @@
-import pygame as pg
 import os
+import yaml
+import pygame as pg
 from typing import TypeVar
 
 TResourceLoader = TypeVar("TResourceLoader", bound="ResourceLoader")
 
 
 class ResourceLoader:
-    def __init__(self, resource_folder) -> None:
+    def __init__(self, resource_folder: str) -> None:
         self.resources = {}
         self.textures = {}
         self.resource_folder = resource_folder
@@ -19,3 +20,15 @@ class ResourceLoader:
             ).convert()
 
         return self
+
+
+class SettingsLoader:
+    def __init__(self, file_path: str) -> None:
+        self.file_path = file_path
+        self.settings = None
+
+    def load_settings(self) -> dict[str:any]:
+        with open(self.file_path, "r") as file:
+            self.settings = yaml.safe_load(file)
+
+        return self.settings

@@ -5,7 +5,7 @@ from pathlib import Path
 
 path = Path(__file__).parent
 
-from .resource_loader import ResourceLoader
+from .loader import ResourceLoader, SettingsLoader
 from .colors import Colors
 
 
@@ -23,7 +23,6 @@ class Engine:
         self.SIZE = self.WIDTH, self.HEIGHT = size
 
         self.WINDOW = pg.display.set_mode(self.SIZE, True)
-        self.DISPLAY = pg.surface.Surface(self.SIZE)
 
         self.CLOCK = pg.time.Clock()
 
@@ -34,6 +33,9 @@ class Engine:
 
         self.RESOURCE_LOADER = ResourceLoader(resource_folder)
         self.SPRITES = self.RESOURCE_LOADER.load_sprites()
+
+        self.SETTINGS_LOADER = SettingsLoader(resource_folder / "settings.yaml")
+        self.SETTINGS = self.SETTINGS_LOADER.load_settings()
 
         self.BACKGROUND_COLOR = background_color
 
@@ -57,7 +59,6 @@ class Engine:
 
     def draw(self) -> None:
         self.WINDOW.fill(self.BACKGROUND_COLOR)
-        self.DISPLAY.fill(self.BACKGROUND_COLOR)
 
     def run(self):
         self.RUNNING = True
@@ -78,7 +79,7 @@ class Engine:
         color: tuple = Colors.white,
         bgcolor: tuple = None,
         padding: int = 4,
-    ):
+    ) -> pg.surface.Surface:
         """Renders text with given arguments
 
         Args:

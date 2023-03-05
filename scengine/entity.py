@@ -11,7 +11,7 @@ class Entity(pg.sprite.Sprite):
         y: int | float = 50,
     ) -> None:
         self.ENGINE = engine
-        self.position = self.x, self.y = Vector2(x, y)
+        self.position = Vector2(x, y)
 
         self.sprite = pg.surface.Surface((16, 16))
         self.sprite.fill(Colors.white)
@@ -23,6 +23,6 @@ class Entity(pg.sprite.Sprite):
         pass
 
     def draw(self) -> None:
-        self.ENGINE.DISPLAY.blit(
+        self.ENGINE.WINDOW.blit(
             self.sprite, self.position.subsract(self.ENGINE.CAMERA.scroll)
         )

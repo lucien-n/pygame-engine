@@ -16,8 +16,13 @@ class Game(engine.Engine):
         resource_folder: str = path / "resources",
     ) -> None:
         super().__init__(title, size, background_color, resource_folder)
+        self.SIZE = self.WIDTH, self.HEIGHT = (
+            self.SETTINGS["video"]["size"]["width"],
+            self.SETTINGS["video"]["size"]["height"],
+        )
+        pg.display.set_mode(self.SIZE, vsync=self.SETTINGS["video"]["vsync"])
 
-        self.CAMERA = camera.Camera(self.DISPLAY)
+        self.CAMERA = camera.Camera(self)
 
         self.PLAYER = Player(self)
         self.CAMERA.follow(self.PLAYER)
@@ -33,6 +38,7 @@ class Game(engine.Engine):
         super().update()
 
         self.PLAYER.update()
+        self.CAMERA.update()
 
     def draw(self):
         """Main draw method"""
@@ -40,6 +46,12 @@ class Game(engine.Engine):
 
         self.PLAYER.draw()
 
-        self.WINDOW.blit(self.DISPLAY, (0, 0))
-        pg.display.flip()
-        self.CLOCK.tick()
+        self.WINDOW.blit(
+            self.font(
+                f"Player | x: {self.PLAYER.position.x:.2f} y: {self.PLAYER.position.y:.2f}"
+            ),
+            (0, 0),
+        )
+
+        pg.display.update()
+        self.CLOCK.tick(self.SETTINGS["video"]["framerate"])

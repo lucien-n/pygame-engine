@@ -6,12 +6,13 @@ TCamera = TypeVar("TCamera", bound="Camera")
 
 
 class Camera:
-    def __init__(self, display: pg.surface.Surface) -> None:
-        self.display = display
+    def __init__(self, game: object) -> None:
+        self.GAME = game
+        self.window = self.GAME.WINDOW
 
         self.followed = None
         self.scroll = Vector2(0, 0)
-        self.scroll_smoothness = 10
+        self.scroll_smoothness = self.GAME.SETTINGS["video"]["camera_scroll_smoothness"]
 
     def follow(self, object: object) -> TCamera:
         """Changes the camera followed object
@@ -32,15 +33,15 @@ class Camera:
         Returns:
             Camera: self
         """
-        if self.follow.x - self.scroll.x != self.display.get_width() / 2:
+        if self.followed.position.x - self.scroll.x != self.window.get_width() / 2:
             self.scroll.x += (
-                self.follow.x - (self.scroll.x + self.display.get_width() / 2)
-            ) / self.scroll_smoothness
-        if self.follow.y - self.follow.y != self.display.get_height() / 2:
-            self.scroll.y += (
-                self.follow.y - (self.scroll.y + self.display.get_height() / 2)
+                self.followed.position.x - (self.scroll.x + self.window.get_width() / 2)
             ) / self.scroll_smoothness
 
-        self.scroll = Vector2(int(self.scroll.x), int(self.scroll.y))
+        if self.followed.position.y - self.scroll.y != self.window.get_height() / 2:
+            self.scroll.y += (
+                self.followed.position.y
+                - (self.scroll.y + self.window.get_height() / 2)
+            ) / self.scroll_smoothness
 
         return self
