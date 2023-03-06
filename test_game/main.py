@@ -1,8 +1,10 @@
 from scengine import *
+from scengine.queue import Queue
 import pygame as pg
 from pathlib import Path
 
 from test_game.player import Player
+from test_game.hud import Hud
 
 path = Path(__file__).parent
 
@@ -22,36 +24,50 @@ class Game(engine.Engine):
         )
         pg.display.set_mode(self.SIZE, vsync=self.SETTINGS["video"]["vsync"])
 
+        self.DISPLAY = pg.surface.Surface(
+            (
+                self.SETTINGS["video"]["resolution"]["width"],
+                self.SETTINGS["video"]["resolution"]["height"],
+            )
+        )
+        self.DRAWING_SURFACE = self.DISPLAY
+
+        self.OVERLAY_DRAW_Q = Queue()
+
         self.CAMERA = camera.Camera(self)
 
         self.PLAYER = Player(self)
         self.CAMERA.follow(self.PLAYER)
 
+        self.HUD = Hud(self)
+
+        self.EVENT_HANDLER_Q.add(self.PLAYER)
+        self.UPDATE_Q.add(self.HUD)
+
+        self.UPDATE_Q.add(self.HUD)
+        self.UPDATE_Q.add(self.PLAYER)
+        self.UPDATE_Q.add(self.CAMERA)
+
+        self.DRAW_Q.add(self.PLAYER)
+
+        self.OVERLAY_DRAW_Q.add(self.HUD)
+
     def event_handler(self) -> None:
         """Main event_handler method"""
-        events = super().event_handler()
-
-        self.PLAYER.event_handler(events)
+        super().event_handler()
 
     def update(self) -> None:
         """Main update method"""
         super().update()
 
-        self.PLAYER.update()
-        self.CAMERA.update()
-
     def draw(self):
         """Main draw method"""
+        self.DRAWING_SURFACE.fill(self.BACKGROUND_COLOR)
+
         super().draw()
+        self.WINDOW.blit(pg.transform.scale(self.DRAWING_SURFACE, self.SIZE), (0, 0))
 
-        self.PLAYER.draw()
-
-        self.WINDOW.blit(
-            self.font(
-                f"Player | x: {self.PLAYER.position.x:.2f} y: {self.PLAYER.position.y:.2f}"
-            ),
-            (0, 0),
-        )
+        [overlay.draw() for overlay in self.OVERLAY_DRAW_Q]
 
         pg.display.update()
         self.CLOCK.tick(self.SETTINGS["video"]["framerate"])

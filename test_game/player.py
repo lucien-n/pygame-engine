@@ -80,6 +80,10 @@ class Player(Entity):
         self.move()
         self.rect.x, self.rect.y = self.position
 
+        self.GAME.HUD.debug(
+            f"Player | x: {self.position.x:.2f} y: {self.position.y:.2f}"
+        )
+
     def move(self) -> None:
         """Moves the player according to recorded inputs"""
 
@@ -98,10 +102,4 @@ class Player(Entity):
         self.position.add(velocity)
 
     def draw(self) -> None:
-        self.GAME.WINDOW.blit(
-            self.sprite,
-            (
-                self.position.x - self.GAME.CAMERA.scroll.x,
-                self.position.y - self.GAME.CAMERA.scroll.y,
-            ),
-        )
+        super().draw(self.GAME.CAMERA.scroll)

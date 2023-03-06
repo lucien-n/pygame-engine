@@ -8,7 +8,6 @@ TCamera = TypeVar("TCamera", bound="Camera")
 class Camera:
     def __init__(self, game: object) -> None:
         self.GAME = game
-        self.window = self.GAME.WINDOW
 
         self.followed = None
         self.scroll = Vector2(0, 0)
@@ -33,15 +32,22 @@ class Camera:
         Returns:
             Camera: self
         """
-        if self.followed.position.x - self.scroll.x != self.window.get_width() / 2:
+        if (
+            self.followed.position.x - self.scroll.x
+            != self.GAME.DRAWING_SURFACE.get_width() / 2
+        ):
             self.scroll.x += (
-                self.followed.position.x - (self.scroll.x + self.window.get_width() / 2)
+                self.followed.position.x
+                - (self.scroll.x + self.GAME.DRAWING_SURFACE.get_width() / 2)
             ) / self.scroll_smoothness
 
-        if self.followed.position.y - self.scroll.y != self.window.get_height() / 2:
+        if (
+            self.followed.position.y - self.scroll.y
+            != self.GAME.DRAWING_SURFACE.get_height() / 2
+        ):
             self.scroll.y += (
                 self.followed.position.y
-                - (self.scroll.y + self.window.get_height() / 2)
+                - (self.scroll.y + self.GAME.DRAWING_SURFACE.get_height() / 2)
             ) / self.scroll_smoothness
 
         return self

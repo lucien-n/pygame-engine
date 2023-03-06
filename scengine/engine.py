@@ -7,6 +7,8 @@ path = Path(__file__).parent
 
 from .loader import ResourceLoader, SettingsLoader
 from .colors import Colors
+from .queue import Queue
+from .vector2 import Vector2
 
 
 class Engine:
@@ -43,22 +45,32 @@ class Engine:
         self.prev_time = time.time()
         self.now = 0
 
+        self.EVENT_HANDLER_Q = Queue()
+        self.UPDATE_Q = Queue()
+        self.DRAW_Q = Queue()
+
+        self.DRAW_ACCORDING_TO_CAMERA_SCROLL = True
+
+        self.DRAWING_SURFACE = self.WINDOW
+
         self.RUNNING = False
 
     def event_handler(self) -> None:
         events = pg.event.get()
+
         for event in events:
             if event.type == pg.QUIT:
                 self.RUNNING = False
                 exit(0)
 
-        return events
+        [item.event_handler(events) for item in self.EVENT_HANDLER_Q]
 
     def update(self) -> None:
-        pass
+        [item.update() for item in self.UPDATE_Q]
 
     def draw(self) -> None:
         self.WINDOW.fill(self.BACKGROUND_COLOR)
+        [item.draw() for item in self.DRAW_Q]
 
     def run(self):
         self.RUNNING = True
