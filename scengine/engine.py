@@ -34,7 +34,8 @@ class Engine:
         self.FONT.antialiased = False
 
         self.RESOURCE_LOADER = ResourceLoader(resource_folder)
-        self.SPRITES = self.RESOURCE_LOADER.load_sprites()
+        self.RESOURCE_LOADER.load_sprites()
+        self.SPRITES = self.RESOURCE_LOADER.sprites
 
         self.SETTINGS_LOADER = SettingsLoader(resource_folder / "settings.yaml")
         self.SETTINGS = self.SETTINGS_LOADER.load_settings()
@@ -61,7 +62,6 @@ class Engine:
         for event in events:
             if event.type == pg.QUIT:
                 self.RUNNING = False
-                exit(0)
 
         [item.event_handler(events) for item in self.EVENT_HANDLER_Q]
 
@@ -83,6 +83,9 @@ class Engine:
             self.event_handler()
             self.update()
             self.draw()
+
+            if not self.RUNNING:
+                exit(0)
 
     def font(
         self,

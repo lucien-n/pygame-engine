@@ -8,7 +8,8 @@ class Queue:
         self.ITEMS = []
 
     def add(self, item) -> TQueue:
-        self.ITEMS.append(item)
+        if item not in self.ITEMS:
+            self.ITEMS.append(item)
         return self
 
     def remove(self, item) -> TQueue:
@@ -17,11 +18,8 @@ class Queue:
 
         return self
 
-    def place_first(self, item) -> TQueue:
-        if self.contains(item):
-            self.ITEMS.pop(self.ITEMS.index(item))
-            self.ITEMS.insert(0, item)
-
+    def empty(self) -> TQueue:
+        self.ITEMS.clear()
         return self
 
     def contains(self, item) -> bool | None:

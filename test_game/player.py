@@ -1,6 +1,7 @@
 from scengine.entity import Entity
 from scengine.vector2 import Vector2
 import pygame as pg
+import math
 
 
 class Player(Entity):
@@ -15,7 +16,16 @@ class Player(Entity):
             "down": False,
         }
 
+        self.keybinds = {
+            "left": ord(self.GAME.SETTINGS["keybinds"]["left"]),
+            "right": ord(self.GAME.SETTINGS["keybinds"]["right"]),
+            "up": ord(self.GAME.SETTINGS["keybinds"]["up"]),
+            "down": ord(self.GAME.SETTINGS["keybinds"]["down"]),
+        }
+
         self.speed = 220
+
+        self.current_chunk = None
 
     def set_key(self, key: str) -> None:
         """Set a key state to pressed
@@ -52,26 +62,24 @@ class Player(Entity):
         """
         for event in events:
             if event.type == pg.KEYDOWN:
-                match event.key:
-                    case pg.K_LEFT:
-                        self.set_key("left")
-                    case pg.K_RIGHT:
-                        self.set_key("right")
-                    case pg.K_UP:
-                        self.set_key("up")
-                    case pg.K_DOWN:
-                        self.set_key("down")
+                if event.key == self.keybinds["left"]:
+                    self.set_key("left")
+                if event.key == self.keybinds["right"]:
+                    self.set_key("right")
+                if event.key == self.keybinds["up"]:
+                    self.set_key("up")
+                if event.key == self.keybinds["down"]:
+                    self.set_key("down")
 
             if event.type == pg.KEYUP:
-                match event.key:
-                    case pg.K_LEFT:
-                        self.reset_key("left")
-                    case pg.K_RIGHT:
-                        self.reset_key("right")
-                    case pg.K_UP:
-                        self.reset_key("up")
-                    case pg.K_DOWN:
-                        self.reset_key("down")
+                if event.key == self.keybinds["left"]:
+                    self.reset_key("left")
+                if event.key == self.keybinds["right"]:
+                    self.reset_key("right")
+                if event.key == self.keybinds["up"]:
+                    self.reset_key("up")
+                if event.key == self.keybinds["down"]:
+                    self.reset_key("down")
 
     def update(self) -> None:
         """Updates the player"""
@@ -80,8 +88,15 @@ class Player(Entity):
         self.move()
         self.rect.x, self.rect.y = self.position
 
+        self.current_chunk = self.position.floor(
+            divide=self.GAME.WORLD.TILE_SIZE
+        ).floor(divide=self.GAME.WORLD.CHUNK_SIZE)
+
+        self.position.set(self.position.round(1))
+
+        self.GAME.HUD.debug(f"Absolute | x: {self.position.x} y: {self.position.y}")
         self.GAME.HUD.debug(
-            f"Player | x: {self.position.x:.2f} y: {self.position.y:.2f}"
+            f"Chunk    | x: {self.current_chunk.x} y: {self.current_chunk.y}"
         )
 
     def move(self) -> None:
@@ -100,6 +115,7 @@ class Player(Entity):
             velocity.add(Vector2(0, speed))
 
         self.position.add(velocity)
+        self.position.round(1)
 
     def draw(self) -> None:
         super().draw(self.GAME.CAMERA.scroll)

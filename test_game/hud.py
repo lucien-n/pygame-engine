@@ -9,8 +9,6 @@ class Hud:
         self.debug_lines = []
 
     def update(self):
-        self.debug_lines.clear()
-
         self.debug(int(self.GAME.CLOCK.get_fps()))
 
     def draw(self) -> THud:
