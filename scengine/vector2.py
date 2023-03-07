@@ -137,39 +137,34 @@ class Vector2(object):
         """
         return Vector2(self.x, self.y)
 
-    def __add__(
-        self, other: TVector2 | tuple[int | float, int]
-    ) -> tuple[int | float, int]:
+    def totuple(self) -> tuple[int | float, int | float]:
+        return (self.x, self.y)
+
+    def __add__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
         if type(other) == tuple:
             return (self.x + other[0], self.y + other[1])
-        return (self.x + other.x, self.y + other.y)
+        return Vector2(self.x + other.x, self.y + other.y)
 
-    def __sub__(
-        self, other: TVector2 | tuple[int | float, int]
-    ) -> tuple[int | float, int]:
+    def __sub__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
         if type(other) == tuple:
             return (self.x - other[0], self.y - other[1])
-        return (self.x - other.x, self.y - other.y)
+        return Vector2(self.x - other.x, self.y - other.y)
 
-    def __mul__(
-        self, other: TVector2 | tuple[int | float, int]
-    ) -> tuple[int | float, int]:
+    def __mul__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
         if type(other) == tuple:
             return (self.x * other[0], self.y * other[1])
-        return (self.x * other.x, self.y * other.y)
+        return Vector2(self.x * other.x, self.y * other.y)
 
-    def __truediv__(
-        self, other: TVector2 | tuple[int | float, int]
-    ) -> tuple[int | float, int]:
+    def __truediv__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
         if type(other) == tuple:
             return (self.x / other[0], self.y / other[1])
-        return (self.x / other.x, self.y / other.y)
+        return Vector2(self.x / other.x, self.y / other.y)
 
     def __repr__(self) -> str:
         return f"({self.x}, {self.y})"
 
     def __call__(self) -> tuple[int, int]:
-        return (self.x, self.y)
+        return tuple(self.x, self.y)
 
     def __iter__(self):
         yield self.x

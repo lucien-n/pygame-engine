@@ -24,4 +24,6 @@ class Entity(pg.sprite.Sprite):
 
     def draw(self, offset: Vector2 = Vector2(0, 0)) -> None:
         """Draws the entity to it's position on the main drawing surface"""
-        self.ENGINE.DRAWING_SURFACE.blit(self.sprite, self.position - offset)
+        self.ENGINE.DRAWING_SURFACE.blit(
+            self.sprite, (self.position - offset).totuple()
+        )

@@ -1,8 +1,9 @@
 from scengine.queue import Queue
+from scengine.vector2 import Vector2
+
 from test_game.world.chunk import Chunk
 from test_game.world.tile import Tile
-
-import pygame as pg
+from test_game.world.matrices import render_distance_matrices
 
 
 class World:
@@ -14,7 +15,7 @@ class World:
         self.TILE_SIZE = 16  # in pixels
 
         self.CHUNK_GENERATION_Q = Queue()
-        self.CHUNKS = {}
+        self.GENERATED_CHUNKS = {}
         self.LOADED_CHUNKS = []
 
     def update(self):
@@ -24,47 +25,81 @@ class World:
         raw_chunks_data = []
         if "chunks" in self.GAME.WORLD_DATA.keys():
             raw_chunks_data = self.GAME.WORLD_DATA["chunks"]
+            self.build_chunks(raw_chunks_data)
 
+        # Chunk updating - Main process
+        self.LOADED_CHUNKS.clear()
+
+        for rows in render_distance_matrices["diamond"]:
+            for matrice in rows:
+                chunk_pos: Vector2 = self.GAME.PLAYER.current_chunk + matrice
+
+                # Adds chunk to generation queue if it doesn't exists
+                if not self.is_chunk_generated(chunk_pos):
+                    self.CHUNK_GENERATION_Q.add(chunk_pos)
+
+                # Adds chunk to the loaded chunks
+                if not self.is_chunk_loaded(chunk_pos):
+                    self.LOADED_CHUNKS.append(chunk_pos.totuple())
+
+        [
+            self.get_chunk(chunk).update()
+            for chunk in self.LOADED_CHUNKS
+            if chunk in self.GENERATED_CHUNKS
+        ]
+
+    def draw(self):
+        [
+            self.get_chunk(chunk).draw()
+            for chunk in self.LOADED_CHUNKS
+            if chunk in self.GENERATED_CHUNKS
+        ]
+
+    def build_chunks(self, raw_chunks_data: list) -> None:
         for raw_chunk_data in raw_chunks_data:
             if raw_chunk_data == None:
                 continue
 
             chunk_x, chunk_y = raw_chunk_data[0]
-            tiles = self.generate_tiles(raw_chunk_data[1:-1])
+            tiles = self.generate_tiles(raw_chunk_data[1:])
             chunk = Chunk(self.GAME, chunk_x, chunk_y, tiles)
 
             self.GAME.HUD.debug(f"Received chunk: {raw_chunk_data[0]}")
 
-            self.CHUNKS[(chunk_x, chunk_y)] = chunk
+            self.GENERATED_CHUNKS[(chunk_x, chunk_y)] = chunk
 
-        # Chunk updating - Main process
-        self.LOADED_CHUNKS.clear()
+    def get_chunk(self, chunk_coordinates: tuple[int, int] | Vector2) -> Chunk:
+        if type(chunk_coordinates) == Vector2:
+            return self.GENERATED_CHUNKS[(chunk_coordinates.x, chunk_coordinates.y)]
+        else:
+            return self.GENERATED_CHUNKS[chunk_coordinates]
 
-        if self.GAME.PLAYER.current_chunk not in self.CHUNKS.keys():
-            self.CHUNK_GENERATION_Q.add(self.GAME.PLAYER.current_chunk)
+    def is_chunk_generated(self, chunk_position: Vector2) -> bool:
+        """Check if chunk is in CHUNKS
 
-        if self.GAME.PLAYER.current_chunk not in self.LOADED_CHUNKS:
-            self.LOADED_CHUNKS.append(
-                (self.GAME.PLAYER.current_chunk.x, self.GAME.PLAYER.current_chunk.y)
-            )
+        Args:
+            chunk_position (Vector2): chunk position
 
-        [
-            self.CHUNKS[chunk].update()
-            for chunk in self.LOADED_CHUNKS
-            if chunk in self.CHUNKS
-        ]
+        Returns:
+            bool: is chunk in CHUNKS
+        """
+        return (chunk_position.x, chunk_position.y) in self.GENERATED_CHUNKS
 
-    def draw(self):
-        [
-            self.CHUNKS[chunk].draw()
-            for chunk in self.LOADED_CHUNKS
-            if chunk in self.CHUNKS
-        ]
+    def is_chunk_loaded(self, chunk_position: Vector2) -> bool:
+        """Check if chunk is in LOADED_CHUNKS
+
+        Args:
+            chunk_position (Vector2): chunk position
+
+        Returns:
+            bool: is chunk in LOADED_CHUNKS
+        """
+        return (chunk_position.x, chunk_position.y) in self.LOADED_CHUNKS
 
     def load(self, chunk_position: tuple[int, int]) -> None:
         chunk = None
-        if chunk_position in self.CHUNKS.keys():
-            chunk = self.CHUNKS[chunk_position]
+        if chunk_position in self.GENERATED_CHUNKS.keys():
+            chunk = self.GENERATED_CHUNKS[chunk_position]
         else:
             self.CHUNK_GENERATION_Q.add(chunk)
 

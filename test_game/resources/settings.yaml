@@ -1,12 +1,12 @@
 video:
-    framerate: 60
-    vsync: true
+    framerate: 420
+    vsync: false
     size:
         width: 1280
         height: 720
     resolution:
-        width: 480
-        height: 270
+        width: 1280
+        height: 720
     camera_scroll_smoothness: 12
 
 keybinds:

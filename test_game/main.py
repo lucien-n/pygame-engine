@@ -110,7 +110,7 @@ class Game(engine.Engine):
 
         if self.WORLD.CHUNK_GENERATION_Q:
             for chunk in self.WORLD.CHUNK_GENERATION_Q:
-                if chunk in self.WORLD.CHUNKS:
+                if chunk in self.WORLD.GENERATED_CHUNKS:
                     continue
                 else:
                     chunks_to_generate.append(chunk)
