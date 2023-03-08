@@ -1,3 +1,8 @@
-pygame==2.2.0
-typing==3.7.4.3
+DateTime==5.0
+numpy==1.24.2        
+opensimplex==0.4.4   
+pygame==2.2.0        
+pytz==2022.7.1       
 PyYAML==6.0
+typing==3.7.4.3      
+zope.interface==5.5.2

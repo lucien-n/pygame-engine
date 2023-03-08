@@ -1,17 +1,17 @@
 import pygame.sprite
 import pygame.surface
+from scengine.vector2 import Vector2
 
 
-class Tile:
+class Tile(pygame.sprite.Sprite):
     def __init__(
-        self, chunk_x: int, chunk_y: int, sprite: pygame.surface.Surface
+        self,
+        chunk_coords: Vector2,
+        sprite: pygame.surface.Surface,
     ) -> None:
-        self.chunk_x = chunk_x
-        self.chunk_y = chunk_y
+        super().__init__()
+
+        self.chunk_coords = chunk_coords
+
         self.image = sprite
-
-    def update(self):
-        pass
-
-    def draw(self):
-        pass
+        self.rect = self.image.get_rect()

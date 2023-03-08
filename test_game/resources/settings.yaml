@@ -5,8 +5,10 @@ video:
         width: 1280
         height: 720
     resolution:
-        width: 1280
-        height: 720
+        # width: 640
+        # height: 360
+        width: 2560
+        height: 1440
     camera_scroll_smoothness: 12
 
 keybinds:
@@ -14,3 +16,4 @@ keybinds:
     right: d
     up: z
     down: s
+    sprint: a

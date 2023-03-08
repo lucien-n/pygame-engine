@@ -143,25 +143,41 @@ class Vector2(object):
     def __add__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
         if type(other) == tuple:
             return (self.x + other[0], self.y + other[1])
-        return Vector2(self.x + other.x, self.y + other.y)
+        elif type(other) == Vector2:
+            return Vector2(self.x + other.x, self.y + other.y)
+        else:
+            return Vector2(self.x + other, self.y + other)
 
     def __sub__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
         if type(other) == tuple:
             return (self.x - other[0], self.y - other[1])
-        return Vector2(self.x - other.x, self.y - other.y)
+        elif type(other) == Vector2:
+            return Vector2(self.x - other.x, self.y - other.y)
+        else:
+            return Vector2(self.x * other, self.y * other)
 
-    def __mul__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
+    def __mul__(
+        self, other: TVector2 | tuple[int | float, int] | int | float
+    ) -> TVector2:
         if type(other) == tuple:
             return (self.x * other[0], self.y * other[1])
-        return Vector2(self.x * other.x, self.y * other.y)
+        elif type(other) == Vector2:
+            return Vector2(self.x * other.x, self.y * other.y)
+        else:
+            return Vector2(self.x * other, self.y * other)
 
-    def __truediv__(self, other: TVector2 | tuple[int | float, int]) -> TVector2:
+    def __truediv__(
+        self, other: TVector2 | tuple[int | float, int] | int | float
+    ) -> TVector2:
         if type(other) == tuple:
             return (self.x / other[0], self.y / other[1])
-        return Vector2(self.x / other.x, self.y / other.y)
+        elif type(other) == tuple:
+            return Vector2(self.x / other.x, self.y / other.y)
+        else:
+            return Vector2(self.x / other, self.y / other)
 
     def __repr__(self) -> str:
-        return f"({self.x}, {self.y})"
+        return f"Vector2({self.x}, {self.y})"
 
     def __call__(self) -> tuple[int, int]:
         return tuple(self.x, self.y)

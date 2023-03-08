@@ -1,6 +1,6 @@
-import time
 import pygame as pg
 import pygame.freetype
+import time
 from pathlib import Path
 
 path = Path(__file__).parent
@@ -8,7 +8,6 @@ path = Path(__file__).parent
 from .loader import ResourceLoader, SettingsLoader
 from .colors import Colors
 from .queue import Queue
-from .vector2 import Vector2
 
 
 class Engine:
@@ -125,3 +124,21 @@ class Engine:
         padded_rendered_text.blit(rendered_text, (padding, padding))
 
         return padded_rendered_text
+
+    def surf2arr(self, *args: list | dict | pg.surface.Surface) -> list | dict:
+        if type(args[0]) == list:
+            return [pg.surfarray.array3d(surface) for surface in args[0]]
+        elif type(args[0]) == dict:
+            return {key: pg.surfarray.array3d(value) for key, value in args[0].items()}
+        else:
+            return pg.surfarray.array3d(args[0])
+
+    def arr2surf(self, *args: list | dict) -> list | dict:
+        if len(args) > 1 and type(args[0]) == list:
+            return [pg.surfarray.make_surface(array) for array in args[0]]
+        elif type(args[0]) == dict:
+            return {
+                key: pg.surfarray.make_surface(value) for key, value in args[0].items()
+            }
+        else:
+            return pg.surfarray.make_surface(args[0])

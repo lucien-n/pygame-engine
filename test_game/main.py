@@ -1,12 +1,16 @@
 from scengine import *
+from scengine.utils import log
+
 import pygame as pg
-from multiprocessing import Process
-from pathlib import Path
 
 from test_game.player import Player
 from test_game.hud import Hud
 from test_game.world.world_generator import WorldGenerator
 from test_game.world.world import World
+
+from multiprocessing import Process
+from pathlib import Path
+import time
 
 path = Path(__file__).parent
 
@@ -35,6 +39,7 @@ class Game(engine.Engine):
                 self.SETTINGS["video"]["resolution"]["height"],
             )
         )
+
         self.DRAWING_SURFACE = self.DISPLAY
 
         self.CAMERA = camera.Camera(self)
@@ -49,6 +54,7 @@ class Game(engine.Engine):
         self.WORLD_PIPE = world_pipe
         self.WORLD_PROCESS = world_process
         self.WORLD_DATA = None
+        self.SENT_SPRITES = False
 
         # World - Main process
         self.WORLD = World(self)
@@ -66,6 +72,8 @@ class Game(engine.Engine):
         self.DRAW_Q.add(self.PLAYER)
 
         self.OVERLAY_DRAW_Q.add(self.HUD)
+
+        self.SEND = True
 
     def event_handler(self) -> None:
         """Main event_handler method"""
@@ -86,6 +94,7 @@ class Game(engine.Engine):
         self.DRAWING_SURFACE.fill(self.BACKGROUND_COLOR)
 
         super().draw()
+
         self.WINDOW.blit(pg.transform.scale(self.DRAWING_SURFACE, self.SIZE), (0, 0))
 
         [overlay.draw() for overlay in self.OVERLAY_DRAW_Q]
@@ -95,7 +104,6 @@ class Game(engine.Engine):
 
     def run(self):
         super().run()
-
         if self.RUNNING:
             self.WORLD_GENERATOR.join()
 
@@ -115,5 +123,9 @@ class Game(engine.Engine):
                 else:
                     chunks_to_generate.append(chunk)
             data["chunks"] = chunks_to_generate
+
+        if not self.SENT_SPRITES:
+            data["sprites"] = self.surf2arr(self.SPRITES)
+            self.SENT_SPRITES = True
 
         return data

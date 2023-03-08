@@ -9,19 +9,11 @@ class Player(Entity):
         super().__init__(game, x, y)
         self.GAME = game
 
-        self.keys_pressed = {
-            "left": False,
-            "right": False,
-            "up": False,
-            "down": False,
+        self.keybinds = {
+            key: ord(value) for key, value in self.GAME.SETTINGS["keybinds"].items()
         }
 
-        self.keybinds = {
-            "left": ord(self.GAME.SETTINGS["keybinds"]["left"]),
-            "right": ord(self.GAME.SETTINGS["keybinds"]["right"]),
-            "up": ord(self.GAME.SETTINGS["keybinds"]["up"]),
-            "down": ord(self.GAME.SETTINGS["keybinds"]["down"]),
-        }
+        self.keys_pressed = {key: False for key in self.keybinds.keys()}
 
         self.speed = 220
 

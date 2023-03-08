@@ -13,12 +13,12 @@ class ResourceLoader:
         self.resource_folder = resource_folder
 
     def load_sprites(self) -> dict[str : pg.surface.Surface]:
-        for file in os.listdir(self.resource_folder / "textures"):
+        for file in os.listdir(f"{self.resource_folder}/textures"):
             self.sprites[str(file).replace(".png", "")] = pg.image.load(
                 f"{self.resource_folder}/textures/{file}"
             ).convert()
 
-        return self
+        return self.sprites
 
 
 class SettingsLoader:

@@ -3,8 +3,6 @@ from multiprocessing import Process, Pipe
 
 from test_game.world.world_generator import WorldGenerator
 
-sys.dont_write_bytecode = True
-
 from test_game.main import Game
 
 if __name__ == "__main__":

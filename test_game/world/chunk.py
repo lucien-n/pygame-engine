@@ -1,38 +1,36 @@
-import pygame.sprite
-import pygame.surface
-from test_game.world.tile import Tile
+import pygame as pg
+from scengine.vector2 import Vector2
 
 
 class Chunk:
-    def __init__(
-        self, game: object, world_x: int, world_y: int, tiles: list[Tile]
-    ) -> None:
+    def __init__(self, game: object, world_coords: Vector2, tiles: list) -> None:
         self.GAME = game
 
-        self.world_x = world_x
-        self.world_y = world_y
-
+        self.world_coords = world_coords
         self.tiles = tiles
-        self.surface = pygame.surface.Surface((256, 256))
-        self.changed = True
+        self.image = pg.surface.Surface((256, 256))
 
-    def update(self):
-        [tile.update() for tile in self.tiles]
+        self.needs_redraw = True
 
-    def draw(self):
-        if self.changed:
+    def update(self) -> None:
+        pass
+
+    def draw(self) -> None:
+        if self.needs_redraw:
             self.redraw()
-
         self.GAME.DRAWING_SURFACE.blit(
-            self.surface,
+            self.image,
             (
-                self.world_x * 256 - self.GAME.CAMERA.scroll.x,
-                self.world_y * 256 - self.GAME.CAMERA.scroll.y,
+                self.world_coords.x * 256 - self.GAME.CAMERA.scroll.x,
+                self.world_coords.y * 256 - self.GAME.CAMERA.scroll.y,
             ),
         )
 
-    def redraw(self):
-        [
-            self.surface.blit(tile.image, (tile.chunk_x, tile.chunk_y))
-            for tile in self.tiles
-        ]
+    def redraw(self) -> None:
+        for tile in self.tiles:
+            self.image.blit(tile.image, (tile.chunk_coords * 16).totuple())
+        # [
+        #     self.image.blit(tile.image, (tile.chunk_coords * 16).totuple())
+        #     for tile in self.tiles
+        # ]
+        self.needs_redraw = False
