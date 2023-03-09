@@ -22,6 +22,9 @@ class Game(engine.Engine):
         size: tuple[int] = (1280, 720),
         background_color: pg.Color = (10, 10, 10, 255),
         resource_folder: str = path / "resources",
+        tile_size: int = 16,
+        chunk_size: int = 16,
+        world_size: int = 4_192,
         world_generator: WorldGenerator = None,
         world_pipe=None,
         world_process: Process = None,
@@ -54,10 +57,9 @@ class Game(engine.Engine):
         self.WORLD_PIPE = world_pipe
         self.WORLD_PROCESS = world_process
         self.WORLD_DATA = None
-        self.SENT_SPRITES = False
 
         # World - Main process
-        self.WORLD = World(self)
+        self.WORLD = World(self, tile_size, chunk_size, world_size)
 
         # Queues
         self.OVERLAY_DRAW_Q = queue.Queue()
@@ -73,8 +75,6 @@ class Game(engine.Engine):
 
         self.OVERLAY_DRAW_Q.add(self.HUD)
 
-        self.SEND = True
-
     def event_handler(self) -> None:
         """Main event_handler method"""
         super().event_handler()
@@ -85,7 +85,9 @@ class Game(engine.Engine):
         super().update()
 
         self.WORLD_PIPE.send(self.generate_world_pipe_data())
+        log("Main | Sent data to World")
         self.WORLD_DATA = self.WORLD_PIPE.recv()
+        log("Main | Received data from World")
 
         self.WORLD.update()
 
@@ -103,6 +105,7 @@ class Game(engine.Engine):
         self.CLOCK.tick(self.SETTINGS["video"]["framerate"])
 
     def run(self):
+        log("Main | Starting game")
         super().run()
         if self.RUNNING:
             self.WORLD_GENERATOR.join()
@@ -114,18 +117,13 @@ class Game(engine.Engine):
             dict: running and waiting to be generated chunks
         """
         data = {"running": self.RUNNING}
-        chunks_to_generate = []
 
-        if self.WORLD.CHUNK_GENERATION_Q:
-            for chunk in self.WORLD.CHUNK_GENERATION_Q:
-                if chunk in self.WORLD.GENERATED_CHUNKS:
-                    continue
-                else:
-                    chunks_to_generate.append(chunk)
-            data["chunks"] = chunks_to_generate
-
-        if not self.SENT_SPRITES:
-            data["sprites"] = self.surf2arr(self.SPRITES)
-            self.SENT_SPRITES = True
+        if not self.WORLD.CHUNK_GENERATION_QUEUE.isEmpty():
+            data["chunk"] = self.WORLD.CHUNK_GENERATION_QUEUE.ITEMS[0]
+            log(
+                "Main | Requested generation of ",
+                self.WORLD.CHUNK_GENERATION_QUEUE.ITEMS[0],
+            )
+            self.WORLD.CHUNK_GENERATION_QUEUE.pop(0)
 
         return data

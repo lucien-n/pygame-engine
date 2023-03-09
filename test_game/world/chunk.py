@@ -18,19 +18,20 @@ class Chunk:
     def draw(self) -> None:
         if self.needs_redraw:
             self.redraw()
+
         self.GAME.DRAWING_SURFACE.blit(
             self.image,
             (
-                self.world_coords.x * 256 - self.GAME.CAMERA.scroll.x,
-                self.world_coords.y * 256 - self.GAME.CAMERA.scroll.y,
+                self.world_coords[0] * 256 - self.GAME.CAMERA.scroll.x,
+                self.world_coords[1] * 256 - self.GAME.CAMERA.scroll.y,
             ),
         )
 
     def redraw(self) -> None:
-        for tile in self.tiles:
-            self.image.blit(tile.image, (tile.chunk_coords * 16).totuple())
-        # [
-        #     self.image.blit(tile.image, (tile.chunk_coords * 16).totuple())
-        #     for tile in self.tiles
-        # ]
+        [
+            self.image.blit(
+                tile.image, (tile.chunk_coords[0] * 16, tile.chunk_coords[1] * 16)
+            )
+            for tile in self.tiles
+        ]
         self.needs_redraw = False

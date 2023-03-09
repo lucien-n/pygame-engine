@@ -18,9 +18,27 @@ class Queue:
 
         return self
 
+    def pop(self, index):
+        return self.ITEMS.pop(index)
+
     def empty(self) -> TQueue:
         self.ITEMS.clear()
         return self
+
+    def get(self, index: int) -> any:
+        print(self.ITEMS[index])
+        if not self.ITEMS:
+            return None
+        if index > len(self.ITEMS):
+            yield f"Index ({index}) out of range for length ({len(self.ITEMS)})"
+            return None
+        return self.ITEMS[index]
+
+    def isEmpty(self) -> bool:
+        if len(self.ITEMS) == 0:
+            return True
+        else:
+            return False
 
     def contains(self, item) -> bool | None:
         if item in self.ITEMS:

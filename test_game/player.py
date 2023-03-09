@@ -80,15 +80,20 @@ class Player(Entity):
         self.move()
         self.rect.x, self.rect.y = self.position
 
-        self.current_chunk = self.position.floor(
-            divide=self.GAME.WORLD.TILE_SIZE
-        ).floor(divide=self.GAME.WORLD.CHUNK_SIZE)
+        self.current_chunk: tuple[int, int] = (
+            math.floor(
+                self.position.x / self.GAME.WORLD.TILE_SIZE / self.GAME.WORLD.CHUNK_SIZE
+            ),
+            math.floor(
+                self.position.y / self.GAME.WORLD.TILE_SIZE / self.GAME.WORLD.CHUNK_SIZE
+            ),
+        )
 
         self.position.set(self.position.round(1))
 
         self.GAME.HUD.debug(f"Absolute | x: {self.position.x} y: {self.position.y}")
         self.GAME.HUD.debug(
-            f"Chunk    | x: {self.current_chunk.x} y: {self.current_chunk.y}"
+            f"Chunk    | x: {self.current_chunk[0]} y: {self.current_chunk[1]}"
         )
 
     def move(self) -> None:

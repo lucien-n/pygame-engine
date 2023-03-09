@@ -1,150 +1,118 @@
+import opensimplex
+import time
 from scengine.vector2 import Vector2
 from scengine.utils import log
 
-import pygame as pg
-
-import opensimplex
-import time
-
-from pathlib import Path
-
-path = Path(__file__).parent
-
 
 class WorldGenerator:
-    def __init__(self, seed: int | float = time.time()) -> None:
-        self.SEED = seed
-
-        self.GAME_PIPE = None
-
+    def __init__(
+        self,
+        tile_size: int,
+        chunk_size: int,
+        world_size: int,
+        seed: float = time.time(),
+    ) -> None:
         self.RUNNING = False
-        self.GAME_DATA = {}
+        self.GAME_PIPE = None
+        self.GAME_DATA = None
 
-        self.WORLD_SIZE = 8192  # in chunks
-        self.CHUNK_SIZE = 16  # in tiles
-        self.TILE_SIZE = 16  # in pixels
+        self.TILE_SIZE = tile_size
+        self.CHUNK_SIZE = chunk_size
+        self.WORLD_SIZE = world_size
 
+        self.SEED = seed
         self.NOISE = opensimplex.seed(int(self.SEED))
 
-        self.GENERATED_CHUNKS = set()
-        self.CHUNKS = {}
-
-        self.GENERATED_CHUNK_WAITING_TO_BE_SENT = []
-
-        self.SPRITES = {}
-        self.RECEIVED_SPRITES = False
+        self.GENERATED_CHUNKS: dict[
+            tuple[int, int] : list[tuple[int, int], list[int, int, str]]
+        ] = {}
 
     def update(self):
         self.GAME_DATA = self.GAME_PIPE.recv()
+        log("World | Received data from Main")
 
-        # Only executes once
-        if not self.RECEIVED_SPRITES and self.GAME_DATA["sprites"]:
-            self.SPRITES = self.GAME_DATA["sprites"]
-            self.RECEIVED_SPRITES = True
-            log("WP | Received sprites")
-
+        # Close WorldProcess if MainProcess is closed
         self.RUNNING = self.GAME_DATA["running"]
 
         data = {}
-        if self.GAME_DATA["chunks"]:
-            t1 = time.time()
-            self.GENERATED_CHUNK_WAITING_TO_BE_SENT = self.generate_chunks(
-                [self.GAME_DATA["chunks"][0]]
-            )
-
-            data["chunks"] = self.GENERATED_CHUNK_WAITING_TO_BE_SENT[0]
-            self.GENERATED_CHUNK_WAITING_TO_BE_SENT.pop(0)
-            log(
-                "WP | Chunk generation took: ",
-                round((time.time() - t1) * 1_000, 2),
-                "ms",
-            )
+        # Check if a chunk generation has been requested
+        if "chunk" in self.GAME_DATA.keys():
+            log("World | Generating chunk ", self.GAME_DATA["chunk"])
+            data["chunk"] = self.generate_chunk(self.GAME_DATA["chunk"])
+        else:
+            log("World | No chunk generation has been requested")
 
         self.GAME_PIPE.send(data)
+        log("World | Sent data to Main")
 
     def run(self, pipe=None):
         self.GAME_PIPE = pipe
         self.RUNNING = True
+        log("World | Starting world generator")
+
         while self.RUNNING:
             self.update()
 
         exit(0)
 
-    def generate_chunks(self, chunks_coordinates: list[tuple[int, int]]) -> list:
-        """Generates chunks based on list of coordinates
+    def generate_chunk(
+        self, chunk_coordinates: tuple[int, int]
+    ) -> list[tuple[int, int], list[int, int, str]]:
+        """Generates a chunk and it's tiles
 
         Args:
-            chunks (list[tuple[int, int]]): list of chunks coordinates
+            chunk_coordinates (Vector2): coordinates of the chunk
 
         Returns:
-            list: generated chunks
+            list[Vector2, list[int, int, str]]: raw chunk data
         """
-        chunks = []
-        for chunk_coordinates in chunks_coordinates:
-            if chunk_coordinates in self.CHUNKS:
-                chunks.append(self.CHUNKS[chunk_coordinates])
-            else:
-                chunks.append(self.generate_chunk(chunk_coordinates))
-        return chunks
 
-    def generate_chunk(self, coordinates: Vector2) -> dict:
-        """Generate a chunk based on set coordinates
+        # Check if the chunk has already been generated (should never happen)
+        if self.is_chunk_generated(chunk_coordinates):
+            log("World | Chunk ", chunk_coordinates, " has already been generated")
+            return self.get_chunk(chunk_coordinates)
 
-        Args:
-            coordinates (Vector2): chunk's coordinates
+        chunk = [chunk_coordinates]
+        factor_x: int = chunk_coordinates[0] * self.CHUNK_SIZE
+        factor_y: int = chunk_coordinates[1] * self.CHUNK_SIZE
 
-        Returns:
-            dict: chunk
-        """
-        factor_x = coordinates.x * self.CHUNK_SIZE
-        factor_y = coordinates.y * self.CHUNK_SIZE
-
-        # Check if chunk is out of bounds
+        # Check if chunk is out of world bounds
         if (
             not (-self.WORLD_SIZE + self.CHUNK_SIZE) < factor_x < self.WORLD_SIZE
             or not (-self.WORLD_SIZE + self.CHUNK_SIZE) < factor_y < self.WORLD_SIZE
         ):
             return
 
+        # Generate the tiles
         tiles = []
-        for x in range(self.CHUNK_SIZE):
-            for y in range(self.CHUNK_SIZE):
-                noise = int(
+        for tile_x in range(self.CHUNK_SIZE):
+            for tile_y in range(self.CHUNK_SIZE):
+                noise_value = int(
                     opensimplex.noise2(
-                        x=(x + factor_x) / self.CHUNK_SIZE,
-                        y=(y + factor_y) / self.CHUNK_SIZE,
+                        x=(tile_x + factor_x) / self.WORLD_SIZE,
+                        y=(tile_y + factor_y) / self.WORLD_SIZE,
                     )
                     * 10
                 )
 
-                tiles.append([x, y, self.SPRITES[self.get_tile_type(noise)]])
+                tile_type = self.get_tile_type(noise_value)
+                tiles.append([tile_x, tile_y, tile_type])
 
-        return [coordinates, tiles]
+        chunk.append(tiles)
 
-    def get_chunk(self, chunk_coordinates: tuple[int, int]) -> list:
-        """Returns a chunk based on coordinates
+        # Save the chunk
+        self.GENERATED_CHUNKS[chunk_coordinates] = chunk
 
-        Args:
-            player_chunk (tuple[int, int]): _description_
-
-        Returns:
-            list: _description_
-        """
-        if chunk_coordinates in self.CHUNKS:
-            return self.CHUNKS[chunk_coordinates]
-        else:
-            chunk = self.generate_chunk(chunk_coordinates)
-            self.CHUNKS[chunk[0]] = chunk
-            return chunk
+        return chunk
 
     def get_tile_type(self, noise: int) -> str:
-        """Returns a type based on noise value
+        """Get the type of the tile depending on the noise
 
         Args:
-            noise (int): noise value
+            noise (int): noise value of the tile
 
         Returns:
-            str: type
+            str: tile type
         """
         if noise < -4:
             tile_type = "deep_water"
@@ -158,3 +126,12 @@ class WorldGenerator:
             tile_type = "stone"
 
         return tile_type
+
+    def get_chunk(self, chunk_coordinates: tuple[int, int]) -> list:
+        if self.is_chunk_generated(chunk_coordinates):
+            return self.GENERATED_CHUNKS[chunk_coordinates]
+
+        return None
+
+    def is_chunk_generated(self, chunk_coordinates: tuple[int, int]) -> bool:
+        return chunk_coordinates in self.GENERATED_CHUNKS.keys()
